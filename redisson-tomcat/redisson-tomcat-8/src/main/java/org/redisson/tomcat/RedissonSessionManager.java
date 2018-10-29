@@ -134,39 +134,40 @@ public class RedissonSessionManager extends ManagerBase {
     }
     
     @Override
-    public Session findSession(String id) throws IOException {
-        Session result = super.findSession(id);
-        if (result == null) {
-            if (id != null) {
-                Map<String, Object> attrs = new HashMap<String, Object>();
-                if (readMode == ReadMode.MEMORY) {
-                    attrs = getMap(id).readAllMap();
-                } else {
-                    attrs = getMap(id).getAll(RedissonSession.ATTRS);
-                }
-                
-                if (attrs.isEmpty() || !Boolean.valueOf(String.valueOf(attrs.get("session:isValid")))) {
-                    log.info("Session " + id + " can't be found");
-                    return null;
-                }
-                
-                RedissonSession session = (RedissonSession) createEmptySession();
-                session.setId(id);
-                session.setManager(this);
-                session.load(attrs);
-                
-                session.access();
-                session.endAccess();
-                return session;
-            }
-            return null;
-        }
+	public Session findSession(String id) throws IOException {
+		Session result = super.findSession(id);
+		if (result == null) {
+			if (id != null) {
+				Map<String, Object> attrs = new HashMap<String, Object>();
+				if (readMode == ReadMode.MEMORY) {
+					attrs = getMap(id).readAllMap();
+				} else {
+					attrs = getMap(id).getAll(RedissonSession.ATTRS);
+				}
 
-        result.access();
-        result.endAccess();
-        
-        return result;
-    }
+				if (attrs != null && attrs.isEmpty()
+						|| !Boolean.valueOf(String.valueOf(attrs.get("session:isValid")))) {
+					log.info("Session " + id + " can't be found");
+					return null;
+				}
+
+				RedissonSession session = (RedissonSession) createEmptySession();
+				session.setId(id);
+				session.setManager(this);
+				session.load(attrs);
+
+				session.access();
+				session.endAccess();
+				return session;
+			}
+			return null;
+		}
+
+		result.access();
+		result.endAccess();
+
+		return result;
+	}
     
     @Override
     public Session createEmptySession() {
